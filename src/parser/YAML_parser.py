@@ -1,6 +1,6 @@
 import yaml
 
-from src.parser.parser_base import ParserBase
+from .parser_base import ParserBase
 
 class YAMLParser(ParserBase):
 
