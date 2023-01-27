@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   app:
-    image: app:1.0
+    image: ${application_image_name}
     build:
       context: .
       dockerfile: Dockerfile
@@ -10,7 +10,9 @@ services:
     command: python src/main.py
     depends_on:
       - db
-    
+    networks:
+      - parser_application
+
   db:
     image: mongo
     restart: always
@@ -22,6 +24,12 @@ services:
       - mongodb:/data/db
     ports:
       - 27017:27017
+    networks:
+      - parser_application
 
 volumes:
   mongodb:
+
+networks:
+  parser_application:
+    driver: bridge

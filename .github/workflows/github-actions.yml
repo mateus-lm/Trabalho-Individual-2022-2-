@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ] 
+  pull_request:
+    branches: [ master ]
+
+  workflow_dispatch:
+  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create parser_application network
+        working-directory: .
+        run: docker network create parser_application
+
+      - name: Build da aplicacao
+        working-directory: .
+        run: docker-compose up -d
+  
+  poetry-deploy:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Git Version
+        id: version
+        uses: codacy/git-version@2.7.1
+      
+      - name: Create parser_application network
+        working-directory: .
+        run: docker network create parser_application
+
+      - name: Deploy poetry
+        working-directory: .
+        run: |
+          docker-compose up -d
+          docker ps -a
+          docker images
+          docker run app bash
+          poetry add `cat requirements.txt`
+          poetry install
+          poetry version ${{ steps.version.outputs.version }}
+          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
+          poetry build
+          poetry publish
+          exit
