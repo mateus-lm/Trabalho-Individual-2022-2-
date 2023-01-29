@@ -24,7 +24,6 @@ jobs:
         run: docker-compose up -d
   
   poetry-deploy:
-    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -39,15 +38,4 @@ jobs:
 
       - name: Deploy poetry
         working-directory: .
-        run: |
-          docker-compose up -d
-          docker ps -a
-          docker images
-          docker run app bash
-          poetry add `cat requirements.txt`
-          poetry install
-          poetry version ${{ steps.version.outputs.version }}
-          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
-          poetry build
-          poetry publish
-          exit
+        run: docker-compose run app bash -c "poetry add `cat requirements.txt`; poetry install; poetry version ${{ steps.version.outputs.version }}; poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}; poetry build; poetry publish"
