@@ -66,15 +66,20 @@ jobs:
         working-directory: .
         run: docker network create parser_application
       
-      - name: Run pytest
+      - name: Build pages from doxygen
         working-directory: .
-        run : docker-compose run app bash -c "doxygen doxygen.conf; sphinx-build -b xml ./docs/source/ ./docs/build"
+        run : docker-compose run app bash -c "doxygen doxygen.conf; sphinx-build -b html ./docs/source/ ./docs/build"
       
       - name: github-pages
         uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         with:
           publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/build
+          publish_dir: ./docs/build/
           force_orphan: true
+      
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: ./docs/build/
