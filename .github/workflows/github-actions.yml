@@ -39,3 +39,16 @@ jobs:
       - name: Deploy poetry
         working-directory: .
         run: docker-compose run app bash -c "poetry add `cat requirements.txt`; poetry install; poetry version ${{ steps.version.outputs.version }}; poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}; poetry build; poetry publish"
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create parser_application network
+        working-directory: .
+        run: docker network create parser_application
+      
+      - name: Run pytest
+        working-directory: .
+        run : docker-compose run app bash -c "pytest --cov"
