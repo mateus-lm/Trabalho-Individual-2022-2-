@@ -26,7 +26,11 @@ jobs:
   poetry-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0 
 
       - name: Git Version
         id: version
@@ -51,4 +55,26 @@ jobs:
       
       - name: Run pytest
         working-directory: .
-        run : docker-compose run app bash -c "pytest --cov"
+        run : docker-compose run app bash -c "pytest -v"
+
+  doxygen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Create parser_application network
+        working-directory: .
+        run: docker network create parser_application
+      
+      - name: Run pytest
+        working-directory: .
+        run : docker-compose run app bash -c "doxygen doxygen.conf; sphinx-build -b xml ./docs/source/ ./docs/build"
+      
+      - name: github-pages
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        with:
+          publish_branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/build
+          force_orphan: true
